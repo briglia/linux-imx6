@@ -81,7 +81,7 @@
 #include "crm_regs.h"
 #include "cpu_op-mx6.h"
 
-#define GP_SD3_CD		IMX_GPIO_NR(7, 0)
+#define GP_SD4_CD		IMX_GPIO_NR(4, 20)
 #define GP_ECSPI1_CS1		IMX_GPIO_NR(3, 19)
 #define GP_USB_OTG_PWR		IMX_GPIO_NR(3, 22)
 #define GP_CAP_TCH_INT1		IMX_GPIO_NR(1, 9)
@@ -180,14 +180,14 @@ static struct esdhc_platform_data sd2_data = {
 };
 #endif
 
-static struct esdhc_platform_data sd3_data = {
-	.cd_gpio = GP_SD3_CD,
+static struct esdhc_platform_data sd4_data = {
+	.cd_gpio = GP_SD4_CD,
 	.wp_gpio = -1,
 	.keep_power_at_suspend = 1,
 	.platform_pad_change = plt_sd_pad_change,
 };
 
-static const struct esdhc_platform_data sd4_data __initconst = {
+static const struct esdhc_platform_data sd3_data __initconst = {
 	.cd_gpio = -1,
 	.wp_gpio = -1,
 	.always_present = 1,
@@ -361,13 +361,16 @@ static struct i2c_board_info mxc_i2c1_board_info[] __initdata = {
 	},
 };
 
+static int accelerometer_pos = 0;
+
 static struct i2c_board_info mxc_i2c2_board_info[] __initdata = {
 	{
 		I2C_BOARD_INFO("isl1208", 0x6f),	/* Real time clock */
 		.irq = gpio_to_irq(IMX_GPIO_NR(6, 7)),	/* NANDF_CLE */
 	},
         {
-                I2C_BOARD_INFO("mma8451", 0x1c)	/* Accelerometer */
+                I2C_BOARD_INFO("mma8451", 0x1c),	/* Accelerometer */
+                .platform_data = (void *)&accelerometer_pos
         },
 };
 
@@ -598,7 +601,7 @@ static struct gpio_keys_button buttons[] = {
 	GPIO_BUTTON(IMX_GPIO_NR(3, 3), KEY_LEFT, 1, "key-left", 0),
 	GPIO_BUTTON(IMX_GPIO_NR(7, 13), KEY_RIGHT, 1, "key-right", 0),
 	GPIO_BUTTON(IMX_GPIO_NR(4, 5), KEY_DOWN, 1, "key-down", 0),
-	GPIO_BUTTON(IMX_GPIO_NR(7, 1), KEY_POWER, 0, "key-power", 1),
+	GPIO_BUTTON(IMX_GPIO_NR(6, 1), KEY_POWER, 0, "key-power", 1),
 };
 
 #if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
@@ -889,8 +892,8 @@ static void __init board_init(void)
 
 	imx6q_add_anatop_thermal_imx(1, &anatop_thermal_data);
 	imx6q_add_pm_imx(0, &pm_data);
-	imx6q_add_sdhci_usdhc_imx(2, &sd3_data);
 	imx6q_add_sdhci_usdhc_imx(3, &sd4_data);
+	imx6q_add_sdhci_usdhc_imx(2, &sd3_data);
 	imx_add_viv_gpu(&imx6_gpu_data, &imx6_gpu_pdata);
 	init_usb();
 	if (cpu_is_mx6q())
